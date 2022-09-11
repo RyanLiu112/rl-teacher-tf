@@ -7,6 +7,7 @@ import subprocess
 import numpy as np
 from gym import error
 
+
 class SegmentVideoRecorder(object):
     def __init__(self, predictor, env, save_dir, checkpoint_interval=500):
         self.predictor = predictor
@@ -29,6 +30,7 @@ class SegmentVideoRecorder(object):
     def predict_reward(self, path):
         return self.predictor.predict_reward(path)
 
+
 def write_segment_to_video(segment, fname, env):
     os.makedirs(osp.dirname(fname), exist_ok=True)
     frames = [env.render_full_obs(x) for x in segment["human_obs"]]
@@ -36,6 +38,7 @@ def write_segment_to_video(segment, fname, env):
         frames.append(frames[-1])
     export_video(frames, fname, fps=env.fps)
     env.close()
+
 
 def export_video(frames, fname, fps=10):
     assert "mp4" in fname, "Name requires .mp4 suffix"
@@ -51,6 +54,12 @@ def export_video(frames, fname, fps=10):
         else:
             encoder.capture_frame(frame)
     encoder.close()
+
+    import moviepy.editor as mpy
+    video = mpy.VideoFileClip(fname)
+    # video = video.resize((320, 240))
+    video.write_gif(fname.replace('.mp4', '.gif'), fps=fps)
+
 
 class ImageEncoder(object):
     def __init__(self, output_path, frame_shape, frames_per_sec):
@@ -131,6 +140,7 @@ class ImageEncoder(object):
         ret = self.proc.wait()
         if ret != 0:
             raise Exception("VideoRecorder encoder exited with status {}".format(ret))
+
 
 def upload_to_gcs(local_path, gcs_path):
     assert osp.isfile(local_path), "%s must be a file" % local_path

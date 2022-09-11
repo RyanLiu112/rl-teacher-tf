@@ -25,6 +25,7 @@ from rl_teacher.video import SegmentVideoRecorder
 
 CLIP_LENGTH = 1.5
 
+
 class TraditionalRLRewardPredictor(object):
     """Predictor that always returns the true reward provided by the environment."""
 
@@ -37,6 +38,7 @@ class TraditionalRLRewardPredictor(object):
 
     def path_callback(self, path):
         pass
+
 
 class ComparisonRewardPredictor():
     """Predictor that trains a model to predict how much reward is contained in a trajectory segment"""
@@ -108,7 +110,6 @@ class ComparisonRewardPredictor():
         self.segment_alt_act_placeholder = tf.placeholder(
             dtype=tf.float32, shape=(None, None) + self.act_shape, name="alt_act_placeholder")
 
-
         # A vanilla multi-layer perceptron maps a (state, action) pair to a reward (Q-value)
         mlp = FullyConnectedMLP(self.obs_shape, self.act_shape)
 
@@ -172,7 +173,7 @@ class ComparisonRewardPredictor():
             self._steps_since_last_training -= self._steps_since_last_training
 
     def train_predictor(self):
-        #self.comparison_collector.label_unlabeled_comparisons()
+        # self.comparison_collector.label_unlabeled_comparisons()
 
         minibatch_size = min(64, len(self.comparison_collector.labeled_decisive_comparisons))
         labeled_comparisons = random.sample(self.comparison_collector.labeled_decisive_comparisons, minibatch_size)
@@ -219,10 +220,10 @@ class ComparisonRewardPredictor():
             "labels/labeled_comparisons", len(self.comparison_collector.labeled_decisive_comparisons))
 
 
-#TODO: predictor that takes in morphological parameters
+# TODO: predictor that takes in morphological parameters
 class ComparisonMorphologyRewardPredictor(ComparisonRewardPredictor):
     def __init__(self, env, summary_writer, comparison_collector, agent_logger, label_schedule):
-        #self.morph_shape = env.
+        # self.morph_shape = env.
         pass
 
 
@@ -231,34 +232,49 @@ def main():
     import json
     parser = argparse.ArgumentParser()
 
-    #parse config
-    parser.add_argument('--conf', type=str, default=None)
-    args, _ = parser.parse_known_args()
-    if hasattr(args, "conf"):
-        with open(args.conf, 'r') as f:
-            parser.set_defaults(**json.load(f))
+    # parse config
+    # parser.add_argument('--conf', type=str, default=None)
+    # args, _ = parser.parse_known_args()
+    # if hasattr(args, "conf"):
+    #     with open(args.conf, 'r') as f:
+    #         parser.set_defaults(**json.load(f))
+    #
+    # parser.add_argument('-e', '--env_id')
+    # parser.add_argument('-p', '--predictor')
+    # parser.add_argument('-n', '--name')
+    # parser.add_argument('-s', '--seed', default=1, type=int)
+    # parser.add_argument('-w', '--workers', default=1, type=int)
+    # parser.add_argument('-l', '--n_labels', default=None, type=int)
+    # parser.add_argument('-L', '--pretrain_labels', type=int)
+    # parser.add_argument('-b', '--seconds_between_labels', type=int)
+    # parser.add_argument('-t', '--num_timesteps', type=int)
+    # parser.add_argument('-a', '--agent', type=str)
+    # parser.add_argument('-i', '--pretrain_iters', type=int)
+    # parser.add_argument('-I', '--train_iters', type=int)
+    # parser.add_argument('-f', '--train_interval', type=int)
+    # parser.add_argument('-E', '--evo_alg')
+    # parser.add_argument('-P', '--pop_size', type=int)
+    # parser.add_argument('-g', '--num_gens', type=int)
+    # parser.add_argument('-N', '--num_episodes', type=int)
+    # parser.add_argument('-S', '--sigma_init', type=float)
+    # parser.add_argument('-d', '--sigma_decay')
+    # parser.add_argument('-V', '--no_videos', action="store_true")
+    # parser.add_argument('-z', '--store_params', action="store_true")
 
-    parser.add_argument('-e', '--env_id')
-    parser.add_argument('-p', '--predictor')
-    parser.add_argument('-n', '--name')
+    parser.add_argument('-e', '--env_id', required=True)
+    parser.add_argument('-p', '--predictor', required=True)
+    parser.add_argument('-n', '--name', required=True)
     parser.add_argument('-s', '--seed', default=1, type=int)
-    parser.add_argument('-w', '--workers', default=1, type=int)
+    parser.add_argument('-w', '--workers', default=4, type=int)
     parser.add_argument('-l', '--n_labels', default=None, type=int)
-    parser.add_argument('-L', '--pretrain_labels', type=int)
-    parser.add_argument('-b', '--seconds_between_labels', type=int)
-    parser.add_argument('-t', '--num_timesteps', type=int)
-    parser.add_argument('-a', '--agent', type=str)
-    parser.add_argument('-i', '--pretrain_iters', type=int)
-    parser.add_argument('-I', '--train_iters', type=int)
-    parser.add_argument('-f', '--train_interval', type=int)
-    parser.add_argument('-E', '--evo_alg')
-    parser.add_argument('-P', '--pop_size', type=int)
-    parser.add_argument('-g', '--num_gens', type=int)
-    parser.add_argument('-N', '--num_episodes', type=int)
-    parser.add_argument('-S', '--sigma_init', type=float)
-    parser.add_argument('-d', '--sigma_decay')
+    parser.add_argument('-L', '--pretrain_labels', default=None, type=int)
+    parser.add_argument('-I', '--train_iters', type=int, default=500)
+    parser.add_argument('-f', '--train_interval', type=int, default=1e4)
+    parser.add_argument('-t', '--num_timesteps', default=5e6, type=int)
+    parser.add_argument('-a', '--agent', default="parallel_trpo", type=str)
+    parser.add_argument('-i', '--pretrain_iters', default=10000, type=int)
     parser.add_argument('-V', '--no_videos', action="store_true")
-    parser.add_argument('-z', '--store_params', action="store_true")
+    parser.add_argument('-b', '--seconds_between_labels', type=int)
     args = parser.parse_args()
 
     name = f"{args.name}_{datetime.now().strftime('%m_%d_%y_%H_%M_%S')}"
@@ -321,7 +337,7 @@ def main():
             comparison_collector.add_segment_pair(pretrain_segments[i], pretrain_segments[i + pretrain_labels])
 
         # Sleep until the human has labeled most of the pretraining comparisons
-        while len(comparison_collector.labeled_comparisons) < int(pretrain_labels): #pretrain_labels *.75
+        while len(comparison_collector.labeled_comparisons) < int(pretrain_labels):  # pretrain_labels *.75
             comparison_collector.label_unlabeled_comparisons()
             if args.predictor == "synth":
                 print("%s synthetic labels generated... " % (len(comparison_collector.labeled_comparisons)))
@@ -364,13 +380,15 @@ def main():
     elif args.agent == "es_augment":
         def make_env():
             return make_with_torque_removed(env_id)
-        num_gens = args.num_gens if args.num_gens else None #TODO: fix command parsing system
+
+        num_gens = args.num_gens if args.num_gens else None  # TODO: fix command parsing system
         train_es_augment(make_env, seed=args.seed, name=name, pop_size=args.pop_size,
                          num_episodes=args.num_episodes, sigma_init=args.sigma_init,
                          sigma_decay=args.sigma_decay, optimizer=args.evo_alg, num_gens=num_gens,
                          predictor=predictor, show_video=not args.no_videos, store_params=args.store_params)
     else:
         raise ValueError("%s is not a valid choice for args.agent" % args.agent)
+
 
 if __name__ == '__main__':
     main()

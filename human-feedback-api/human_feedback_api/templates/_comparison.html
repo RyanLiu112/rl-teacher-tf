@@ -12,12 +12,16 @@
         <div class="row">
             <div class="col-md-6 text-center">
                 <h3>Left</h3>
-                {% if ".mp4" in comparison.media_url_1 %}
-                    <video width="400px" loop>
-                        <source src="{{ comparison.media_url_1 }}" type="video/mp4"/>
-                    </video>
+                {% if ".gif" in comparison.media_url_1 %}
+                    <div style="height: 400px; width: 400px"><img src="/static{{ comparison.media_url_1 }}"/></div>
                 {% else %}
-                    <img style="width:400px" src="{{ comparison.media_url_1 }}">
+                    {% if ".mp4" in comparison.media_url_1 %}
+                        <video width="400px" loop muted>
+                            <source src="/static{{ comparison.media_url_1 }}" type="video/mp4"/>
+                        </video>
+                    {% else %}
+                        <img style="width:400px" src="/static{{ comparison.media_url_1 }}">
+                    {% endif %}
                 {% endif %}
 
                 <form style="padding-top:30px"
@@ -32,12 +36,16 @@
             </div>
             <div class="col-md-6 text-center">
                 <h3>Right</h3>
-                {% if ".mp4" in comparison.media_url_2 %}
-                    <video width="400px" loop>
-                        <source src="{{ comparison.media_url_2 }}" type="video/mp4"/>
-                    </video>
+                {% if ".gif" in comparison.media_url_2 %}
+                    <div style="height: 400px; width: 400px"><img src="/static{{ comparison.media_url_2 }}"/></div>
                 {% else %}
-                    <img style="width:400px" src="{{ comparison.media_url_2 }}">
+                    {% if ".mp4" in comparison.media_url_2 %}
+                        <video width="400px" loop muted>
+                            <source src="/static{{ comparison.media_url_2 }}" type="video/mp4"/>
+                        </video>
+                    {% else %}
+                        <img style="width:400px" src="/static{{ comparison.media_url_2 }}">
+                    {% endif %}
                 {% endif %}
 
                 <form style="padding-top:30px"
