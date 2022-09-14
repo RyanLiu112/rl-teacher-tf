@@ -1,5 +1,6 @@
 from time import time
 
+
 class LabelAnnealer(object):
     """Keeps track of how many labels we want to collect"""
 
@@ -30,6 +31,7 @@ class ConstantLabelSchedule(object):
             self._started_at = time()
         return self._pretrain_labels + (time() - self._started_at) / self._seconds_between_labels
 
+
 class PausingLabelSchedule(object):
     def __init__(self, pretrain_labels, seconds_between_labels=3):
         self._started_at = None  # Don't initialize until we call n_desired_labels
@@ -49,4 +51,3 @@ class PausingLabelSchedule(object):
 
     def end_pause(self):
         self.pause_time += time() - self.pause_timer
-
