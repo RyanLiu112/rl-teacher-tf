@@ -157,6 +157,7 @@ class ComparisonRewardPredictor():
         if segment:
             self.recent_segments.append(segment)
         print(f"{len(self.comparison_collector)} / {self.label_schedule.n_desired_labels} labels collected")
+
         if len(self.comparison_collector) < int(self.label_schedule.n_desired_labels):
             self.label_schedule.start_pause()
             self.comparison_collector.add_segment_pair(
@@ -252,14 +253,7 @@ def main():
     # parser.add_argument('-i', '--pretrain_iters', type=int)
     # parser.add_argument('-I', '--train_iters', type=int)
     # parser.add_argument('-f', '--train_interval', type=int)
-    # parser.add_argument('-E', '--evo_alg')
-    # parser.add_argument('-P', '--pop_size', type=int)
-    # parser.add_argument('-g', '--num_gens', type=int)
-    # parser.add_argument('-N', '--num_episodes', type=int)
-    # parser.add_argument('-S', '--sigma_init', type=float)
-    # parser.add_argument('-d', '--sigma_decay')
     # parser.add_argument('-V', '--no_videos', action="store_true")
-    # parser.add_argument('-z', '--store_params', action="store_true")
 
     parser.add_argument('-e', '--env_id', required=True)
     parser.add_argument('-p', '--predictor', required=True)
@@ -313,8 +307,8 @@ def main():
             comparison_collector = SyntheticComparisonCollector()
 
         elif args.predictor == "human":
-            bucket = os.environ.get('RL_TEACHER_GCS_BUCKET')
-            assert bucket and bucket.startswith("gs://"), "env variable RL_TEACHER_GCS_BUCKET must start with gs://"
+            # bucket = os.environ.get('RL_TEACHER_GCS_BUCKET')
+            # assert bucket and bucket.startswith("gs://"), "env variable RL_TEACHER_GCS_BUCKET must start with gs://"
             comparison_collector = HumanComparisonCollector(env_id, experiment_name=experiment_name)
         else:
             raise ValueError("Bad value for --predictor: %s" % args.predictor)
@@ -376,16 +370,7 @@ def main():
         def make_env():
             return make_with_torque_removed(env_id)
 
-        train_pposgd_mpi(make_env, num_timesteps=num_timesteps, seed=args.seed, predictor=predictor)
-    elif args.agent == "es_augment":
-        def make_env():
-            return make_with_torque_removed(env_id)
-
-        num_gens = args.num_gens if args.num_gens else None  # TODO: fix command parsing system
-        train_es_augment(make_env, seed=args.seed, name=name, pop_size=args.pop_size,
-                         num_episodes=args.num_episodes, sigma_init=args.sigma_init,
-                         sigma_decay=args.sigma_decay, optimizer=args.evo_alg, num_gens=num_gens,
-                         predictor=predictor, show_video=not args.no_videos, store_params=args.store_params)
+        # train_pposgd_mpi(make_env, num_timesteps=num_timesteps, seed=args.seed, predictor=predictor)
     else:
         raise ValueError("%s is not a valid choice for args.agent" % args.agent)
 
