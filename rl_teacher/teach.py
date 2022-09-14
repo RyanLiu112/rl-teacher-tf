@@ -49,14 +49,15 @@ class ComparisonRewardPredictor():
         self.agent_logger = agent_logger
         self.comparison_collector = comparison_collector
         self.label_schedule = label_schedule
-        self.training_iters = training_iters
-        self._n_timesteps_per_predictor_training = timesteps_per_predictor_training
+        # self.training_iters = training_iters
+        # self._n_timesteps_per_predictor_training = timesteps_per_predictor_training
 
         # Set up some bookkeeping
         self.recent_segments = deque(maxlen=200)  # Keep a queue of recently seen segments to pull new comparisons from
         self._frames_per_segment = CLIP_LENGTH * env.fps
         self._steps_since_last_training = 0
-        self._max_comparison_buffer = 10
+        self._n_timesteps_per_predictor_training = 1e2  # How often should we train our predictor?
+        # self._max_comparison_buffer = 10
         self._elapsed_predictor_training_iters = 0
 
         # Build and initialize our predictor model
@@ -159,22 +160,23 @@ class ComparisonRewardPredictor():
         print(f"{len(self.comparison_collector)} / {self.label_schedule.n_desired_labels} labels collected")
 
         if len(self.comparison_collector) < int(self.label_schedule.n_desired_labels):
-            self.label_schedule.start_pause()
+            # self.label_schedule.start_pause()
             self.comparison_collector.add_segment_pair(
                 random.choice(self.recent_segments),
                 random.choice(self.recent_segments))
-            self.label_schedule.end_pause()
+            # self.label_schedule.end_pause()
 
         # Train our predictor every X steps
         if self._steps_since_last_training >= int(self._n_timesteps_per_predictor_training):
-            for i in range(self.training_iters):
-                if i % 100 == 0:
-                    print("training predictor iter ", i)
-                self.train_predictor()
+            # for i in range(self.training_iters):
+            #     if i % 100 == 0:
+            #         print("training predictor iter ", i)
+            #     self.train_predictor()
+            self.train_predictor()
             self._steps_since_last_training -= self._steps_since_last_training
 
     def train_predictor(self):
-        # self.comparison_collector.label_unlabeled_comparisons()
+        self.comparison_collector.label_unlabeled_comparisons()
 
         minibatch_size = min(64, len(self.comparison_collector.labeled_decisive_comparisons))
         labeled_comparisons = random.sample(self.comparison_collector.labeled_decisive_comparisons, minibatch_size)
@@ -262,13 +264,13 @@ def main():
     parser.add_argument('-w', '--workers', default=4, type=int)
     parser.add_argument('-l', '--n_labels', default=None, type=int)
     parser.add_argument('-L', '--pretrain_labels', default=None, type=int)
-    parser.add_argument('-I', '--train_iters', type=int, default=500)
-    parser.add_argument('-f', '--train_interval', type=int, default=1e4)
+    # parser.add_argument('-I', '--train_iters', type=int, default=500)
+    # parser.add_argument('-f', '--train_interval', type=int, default=1e4)
     parser.add_argument('-t', '--num_timesteps', default=5e6, type=int)
     parser.add_argument('-a', '--agent', default="parallel_trpo", type=str)
     parser.add_argument('-i', '--pretrain_iters', default=10000, type=int)
     parser.add_argument('-V', '--no_videos', action="store_true")
-    parser.add_argument('-b', '--seconds_between_labels', type=int)
+    # parser.add_argument('-b', '--seconds_between_labels', type=int)
     args = parser.parse_args()
 
     name = f"{args.name}_{datetime.now().strftime('%m_%d_%y_%H_%M_%S')}"
@@ -299,9 +301,9 @@ def main():
                 pretrain_labels=pretrain_labels)
         else:
             print("No label limit given. We will request one label every few seconds.")
-            kwargs = {"seconds_between_labels": args.seconds_between_labels} if args.seconds_between_labels else {}
-            label_schedule = PausingLabelSchedule(pretrain_labels=pretrain_labels, **kwargs)
-            # label_schedule = ConstantLabelSchedule(pretrain_labels=pretrain_labels, **kwargs)
+            # kwargs = {"seconds_between_labels": args.seconds_between_labels} if args.seconds_between_labels else {}
+            # label_schedule = PausingLabelSchedule(pretrain_labels=pretrain_labels, **kwargs)
+            label_schedule = ConstantLabelSchedule(pretrain_labels=pretrain_labels)
 
         if args.predictor == "synth":
             comparison_collector = SyntheticComparisonCollector()
@@ -319,8 +321,8 @@ def main():
             comparison_collector=comparison_collector,
             agent_logger=agent_logger,
             label_schedule=label_schedule,
-            timesteps_per_predictor_training=args.train_interval if args.train_interval else 1000,
-            training_iters=args.train_iters
+            # timesteps_per_predictor_training=args.train_interval if args.train_interval else 1000,
+            # training_iters=args.train_iters
         )
 
         print("Starting random rollouts to generate pretraining segments. No learning will take place...")
@@ -331,7 +333,7 @@ def main():
             comparison_collector.add_segment_pair(pretrain_segments[i], pretrain_segments[i + pretrain_labels])
 
         # Sleep until the human has labeled most of the pretraining comparisons
-        while len(comparison_collector.labeled_comparisons) < int(pretrain_labels):  # pretrain_labels *.75
+        while len(comparison_collector.labeled_comparisons) < int(pretrain_labels * 0.75):  # pretrain_labels *.75
             comparison_collector.label_unlabeled_comparisons()
             if args.predictor == "synth":
                 print("%s synthetic labels generated... " % (len(comparison_collector.labeled_comparisons)))

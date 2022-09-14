@@ -71,7 +71,7 @@ class TRPO(object):
         self.fvp = utils.flatgrad(gvp, self.policy_vars)
 
         config = tf.ConfigProto(
-            device_count = {'GPU': 0}
+            device_count={'GPU': 0}
         )
         self.session = tf.Session(config=config)
         self.session.run(tf.global_variables_initializer())

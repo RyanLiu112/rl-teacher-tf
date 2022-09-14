@@ -59,7 +59,7 @@ def _write_and_upload_video(env_id, gcs_path, local_path, segment):
     upload_to_gcs(local_path, gcs_path)
 
 
-def _write_video(env_id, gcs_path, local_path, segment):
+def _write_video(env_id, local_path, segment):
     env = make_with_torque_removed(env_id)
     if hasattr(env, "augment_env") and "env_params" in segment:
         env.augment_env(segment["env_params"])
@@ -96,13 +96,14 @@ class HumanComparisonCollector():
 
     def convert_segment_to_local_path(self, comparison_uuid, side, segment):
         # tmp_media_dir = './tmp/rl_teacher_media'
-        tmp_media_dir = './human-feedback-api/human_feedback_site/static'
+        tmp_media_dir = f'./human-feedback-api/human_feedback_site/static'
+        # tmp_media_dir = f'./human-feedback-api/human_feedback_site/static/{self.experiment_name}'
         media_id = "%s-%s.mp4" % (comparison_uuid, side)
         local_path = osp.join(tmp_media_dir, media_id)
-        gcs_bucket = os.environ.get('RL_TEACHER_GCS_BUCKET')
-        gcs_path = osp.join(gcs_bucket, media_id)
+        # gcs_bucket = os.environ.get('RL_TEACHER_GCS_BUCKET')
+        # gcs_path = osp.join(gcs_bucket, media_id)
         # _write_video(self.env_id, gcs_path, local_path, segment)
-        p = multiprocessing.Process(target=_write_video, args=(self.env_id, gcs_path, local_path, segment))
+        p = multiprocessing.Process(target=_write_video, args=(self.env_id, local_path, segment))
         p.start()
         p.join()
         # TODO: set such that 4 processes can run at a time?

@@ -1,9 +1,10 @@
 import math
 from multiprocessing import Pool
 import numpy as np
-#import gym.spaces.prng as space_prng
+# import gym.spaces.prng as space_prng
 
 from rl_teacher.envs import get_timesteps_per_episode
+
 
 def _slice_path(path, segment_length, start_pos=0):
     slice_path = {
@@ -14,10 +15,12 @@ def _slice_path(path, segment_length, start_pos=0):
         slice_path["env_params"] = path["env_params"]
     return slice_path
 
+
 def create_segment_q_states(segment):
     obs_Ds = segment["obs"]
     act_Ds = segment["actions"]
     return np.concatenate([obs_Ds, act_Ds], axis=1)
+
 
 def sample_segment_from_path(path, segment_length):
     """Returns a segment sampled from a random place in a path. Returns None if the path is too short"""
@@ -34,9 +37,11 @@ def sample_segment_from_path(path, segment_length):
     segment["q_states"] = create_segment_q_states(segment)
     return segment
 
+
 def random_action(env, ob):
     """ Pick an action by uniformly sampling the environment's action space. """
     return env.action_space.sample()
+
 
 def do_rollout(env, action_function):
     """ Builds a path by running through an environment using a provided function to select actions. """
@@ -61,10 +66,11 @@ def do_rollout(env, action_function):
         "human_obs": np.array(human_obs)}
     return path
 
+
 def basic_segments_from_rand_rollout(
-    env_id, make_env, n_desired_segments, clip_length_in_seconds,
-    # These are only for use with multiprocessing
-    seed=0, _verbose=True, _multiplier=1
+        env_id, make_env, n_desired_segments, clip_length_in_seconds,
+        # These are only for use with multiprocessing
+        seed=0, _verbose=True, _multiplier=1
 ):
     """ Generate a list of path segments by doing random rollouts. No multiprocessing. """
     segments = []
@@ -87,6 +93,7 @@ def basic_segments_from_rand_rollout(
     if _verbose:
         print("Successfully collected %s segments" % (len(segments) * _multiplier))
     return segments
+
 
 def segments_from_rand_rollout(env_id, make_env, n_desired_segments, clip_length_in_seconds, workers):
     """ Generate a list of path segments by doing random rollouts. Can use multiple processes. """

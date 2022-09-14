@@ -4,8 +4,10 @@ from time import sleep
 
 import numpy as np
 import tensorflow.compat.v1 as tf
+
 tf.disable_eager_execution()
 from parallel_trpo.utils import filter_ob, make_network
+
 
 class Actor(multiprocess.Process):
     def __init__(self, task_q, result_q, env_id, make_env, seed, max_timesteps_per_episode):
@@ -57,7 +59,7 @@ class Actor(multiprocess.Process):
             "policy-a", self.obs, hidden_size, action_size)
 
         config = tf.ConfigProto(
-            device_count = {'GPU': 0}
+            device_count={'GPU': 0}
         )
         self.session = tf.Session(config=config)
         self.session.run(tf.global_variables_initializer())
@@ -109,6 +111,7 @@ class Actor(multiprocess.Process):
                     "human_obs": np.array(human_obs)}
                 return path
 
+
 class ParallelRollout(object):
     def __init__(self, env_id, make_env, reward_predictor, num_workers, max_timesteps_per_episode, seed):
         self.num_workers = num_workers
@@ -120,7 +123,8 @@ class ParallelRollout(object):
         self.actors = []
         for i in range(self.num_workers):
             new_seed = seed * 1000 + i  # Give each actor a uniquely seeded env
-            self.actors.append(Actor(self.tasks_q, self.results_q, env_id, make_env, new_seed, max_timesteps_per_episode))
+            self.actors.append(
+                Actor(self.tasks_q, self.results_q, env_id, make_env, new_seed, max_timesteps_per_episode))
 
         for a in self.actors:
             a.start()
@@ -166,6 +170,7 @@ class ParallelRollout(object):
         for i in range(self.num_workers):
             self.tasks_q.put("kill")
 
+
 class SequentialRollout(object):
 
     def __init__(self, env_id, make_env, reward_predictor, max_timesteps_per_episode, seed):
@@ -205,6 +210,7 @@ class SequentialRollout(object):
 
     def end(self):
         pass
+
 
 class SequentialActor():
 

@@ -55,10 +55,10 @@ def export_video(frames, fname, fps=10):
             encoder.capture_frame(frame)
     encoder.close()
 
-    import moviepy.editor as mpy
-    video = mpy.VideoFileClip(fname)
-    # video = video.resize((320, 240))
-    video.write_gif(fname.replace('.mp4', '.gif'), fps=fps)
+    # import moviepy.editor as mpy
+    # video = mpy.VideoFileClip(fname)
+    # # video = video.resize((320, 240))
+    # video.write_gif(fname.replace('.mp4', '.gif'), fps=fps)
 
 
 class ImageEncoder(object):

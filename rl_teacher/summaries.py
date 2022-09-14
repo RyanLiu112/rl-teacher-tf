@@ -8,7 +8,7 @@ import tensorflow.compat.v1 as tf
 CLIP_LENGTH = 1.5
 
 def make_summary_writer(name):
-    logs_path = osp.expanduser('~/tb/rl-teacher/%s' % (name))
+    logs_path = osp.expanduser('./tb/rl-teacher/%s' % (name))
     with tf.Graph().as_default():
         return tf.summary.FileWriter(logs_path)
 

@@ -4,6 +4,7 @@ import tensorflow.compat.v1 as tf
 import numpy as np
 import scipy.signal
 
+
 # KL divergence with itself, holding first argument fixed
 def gauss_selfKL_firstfixed(mu, logstd):
     mu1, logstd1 = map(tf.stop_gradient, [mu, logstd])
@@ -72,7 +73,7 @@ class FilterOb:
     def __call__(self, obs):
         self.m1 = self.m1 * (self.n / (self.n + 1)) + obs * 1 / (1 + self.n)
         self.v = self.v * (self.n / (self.n + 1)) + (obs - self.m1) ** 2 * 1 / (1 + self.n)
-        self.std = (self.v + 1e-6)**.5  # std
+        self.std = (self.v + 1e-6) ** .5  # std
         self.n += 1
         if self.filter_mean:
             o1 = (obs - self.m1) / self.std

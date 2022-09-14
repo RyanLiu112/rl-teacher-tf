@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 from parallel_trpo import utils
 
+
 class VF(object):
     coeffs = None
 
@@ -46,6 +47,7 @@ class VF(object):
         else:
             ret = self.session.run(self.net, {self.x: self._features(path)})
             return np.reshape(ret, (ret.shape[0],))
+
 
 class LinearVF(object):
     coeffs = None
